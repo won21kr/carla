@@ -31,6 +31,20 @@ namespace element {
     RoadInfo(double distance = 0) : d(distance) {}
   };
 
+  class RoadElevationInfo : public RoadInfo {
+    private:
+    public:
+      void AcceptVisitor(RoadInfoVisitor &v) final {
+        v.Visit(*this);
+      }
+
+      double start_position;      // (S) start position(s - offset)[meters]
+      double elevation;           // (A) elevation [meters]
+      double slope;               // (B)
+      double vertical_curvature;  // (C)
+      double curvature_change;    // (D)
+  };
+
   class RoadGeneralInfo : public RoadInfo {
   private:
 

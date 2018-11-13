@@ -67,7 +67,9 @@ namespace opendrive {
     }
   }
 
-  // HACK(Andrei):
+  // HACK(Andrei): If the connection between roads is "end", the lane connection is the one from
+  // from the last section of the lane record. As we use the section zero to conect between lanes,
+  // find to which lane corresponds the last section entry lane with the first section lane.
   static int fnc_get_first_driving_line(opendrive::types::RoadInformation *roadInfo, int id = 0) {
     if(roadInfo == nullptr) {
       printf("In function %s(%d) roadInfo is NULL\n", __FUNCTION__, __LINE__);
@@ -82,14 +84,6 @@ namespace opendrive {
         }
       }
     }
-
-    /*
-    for(auto &&lane : roadInfo->lanes.lane_sections[0].left) {
-      if(lane.attributes.type == "driving") {
-        return lane.attributes.id;
-      }
-    }
-    */
 
     return id;
   }
@@ -124,13 +118,28 @@ namespace opendrive {
       carla::road::element::RoadSegmentDefinition roadSegment(it->first);
       carla::road::element::RoadInfoLane *roadInfoLanes = roadSegment.MakeInfo<carla::road::element::RoadInfoLane>();
 
-      carla::road::element::RoadGeneralInfo *roadGeneralInfo = roadSegment.MakeInfo<carla::road::element::RoadGeneralInfo>();
+      carla::road::element::RoadGeneralInfo *roadGeneralInfo =
+        roadSegment.MakeInfo<carla::road::element::RoadGeneralInfo>();
       roadGeneralInfo->SetJunctionId(it->second->attributes.junction);
 
       for(size_t i = 0; i < it->second->lanes.lane_offset.size(); ++i) {
         double s = it->second->lanes.lane_offset[i].s;
         double a = it->second->lanes.lane_offset[i].a;
         roadGeneralInfo->SetLanesOffset(s, a);
+      }
+
+      for(auto &&elevation : it->second->road_profiles.elevation_profile) {
+        carla::road::element::RoadElevationInfo *elev =
+          roadSegment.MakeInfo<carla::road::element::RoadElevationInfo>();
+
+        elev->start_position = elevation.start_position;
+        elev->d = elevation.start_position;
+
+        elev->elevation = elevation.elevation;
+        elev->slope = elevation.slope;
+
+        elev->curvature_change = elevation.curvature_change;
+        elev->vertical_curvature = elevation.vertical_curvature;
       }
 
 
@@ -163,11 +172,6 @@ namespace opendrive {
                 itTest.second = itLanes.link->successor_id;
               }
             }
-            /*for(auto &&itTest : leftLanesGoToPredecessor) {
-              if(itTest.second == itLanes.attributes.id && itLanes.link) {
-                itTest.second = itLanes.link->predecessor_id;
-              }
-            }*/
           }
         }
 
@@ -178,11 +182,6 @@ namespace opendrive {
                 itTest.second = itLanes.link->successor_id;
               }
             }
-            /*for(auto &&itTest : rightLanesGoToPredecessor) {
-              if(itTest.second == itLanes.attributes.id && itLanes.link) {
-                itTest.second = itLanes.link->predecessor_id;
-              }
-            }*/
           }
         }
       }
@@ -211,20 +210,11 @@ namespace opendrive {
               bool is_end = options[i].contact_point == "end";
               int to_lane = options[i].to_lane[j];
 
-              if(is_end && to_lane < 0) {
-                printf("TEST ERROR\nFromLane: %d\nToLane: %d\nRoadID: %d\n",
-                options[i].from_lane[j],
-                to_lane,
-                options[i].connection_road
-                );
-              }
-
               if(is_end) {
                 to_lane = fnc_get_first_driving_line(roadData[options[i].connection_road], to_lane);
               }
 
               roadSegment.AddNextLaneInfo(options[i].from_lane[j], to_lane, options[i].connection_road);
-              printf("[suc][% 5d -> % 5d]    [% 3d -> % 3d]\n", it->first, options[i].connection_road, options[i].from_lane[j], to_lane);
             }
           }
         } else {
@@ -232,12 +222,10 @@ namespace opendrive {
           roadSegment.AddSuccessorID(it->second->road_link.successor->id, is_start);
 
           for(auto &&lanes : rightLanesGoToSuccessor) {
-            printf("[suc][% 5d -> % 5d]    [% 3d -> % 3d]\n", it->first, it->second->road_link.successor->id, lanes.first, lanes.second);
             roadSegment.AddNextLaneInfo(lanes.first, lanes.second, it->second->road_link.successor->id);
           }
 
           for(auto &&lanes : leftLanesGoToSuccessor) {
-            printf("[suc][% 5d -> % 5d]    [% 3d -> % 3d]\n", it->first, it->second->road_link.successor->id, lanes.first, lanes.second);
             roadSegment.AddNextLaneInfo(lanes.first, lanes.second, it->second->road_link.successor->id);
           }
         }
@@ -254,20 +242,11 @@ namespace opendrive {
               bool is_end = options[i].contact_point == "end";
               int to_lane = options[i].to_lane[j];
 
-              if(is_end && to_lane < 0) {
-                printf("TEST ERROR\nFromLane: %d\nToLane: %d\nRoadID: %d\n",
-                options[i].from_lane[j],
-                to_lane,
-                options[i].connection_road
-                );
-              }
-
               if(is_end) {
                 to_lane = fnc_get_first_driving_line(roadData[options[i].connection_road], to_lane);
               }
 
               roadSegment.AddPrevLaneInfo(options[i].from_lane[j], to_lane, options[i].connection_road);
-              printf("[pre][% 5d -> % 5d]    [% 3d -> % 3d]\n", it->first, options[i].connection_road, options[i].from_lane[j], to_lane);
             }
           }
         } else {
@@ -275,12 +254,10 @@ namespace opendrive {
           roadSegment.AddPredecessorID(it->second->road_link.predecessor->id, is_start);
 
           for(auto &&lanes : rightLanesGoToPredecessor) {
-            printf("[pre][% 5d -> % 5d]    [% 3d -> % 3d]\n", it->first, it->second->road_link.predecessor->id, lanes.first, lanes.second);
             roadSegment.AddPrevLaneInfo(lanes.first, lanes.second, it->second->road_link.predecessor->id);
           }
 
           for(auto &&lanes : leftLanesGoToPredecessor) {
-            printf("[pre][% 5d -> % 5d]    [% 3d -> % 3d]\n", it->first, it->second->road_link.predecessor->id, lanes.first, lanes.second);
             roadSegment.AddPrevLaneInfo(lanes.first, lanes.second, it->second->road_link.predecessor->id);
           }
         }
