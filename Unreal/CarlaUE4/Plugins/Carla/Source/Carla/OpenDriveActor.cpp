@@ -140,7 +140,7 @@ TArray<carla::road::element::DirectedPoint> AOpenDriveActor::GenerateLaneZeroPoi
     const carla::road::element::RoadGeneralInfo *generalInfo = road->GetInfo<carla::road::element::RoadGeneralInfo>(0.0);
     std::vector<std::pair<double, double>> lanesOffset = generalInfo->GetLanesOffset();
 
-    for (float waypointsOffset = 0.0f; waypointsOffset < road->GetLength() + 2.0; waypointsOffset += 2.0)
+    for (float waypointsOffset = 0.0f; waypointsOffset < road->GetLength() + 0.5; waypointsOffset += 0.5)
     {
         //NOTE(Andrei): Calculate the which laneOffset has to be used
         if (lanesOffsetIndex < lanesOffset.size() - 1 && waypointsOffset >= lanesOffset[lanesOffsetIndex + 1].first)
@@ -148,9 +148,21 @@ TArray<carla::road::element::DirectedPoint> AOpenDriveActor::GenerateLaneZeroPoi
             ++lanesOffsetIndex;
         }
 
-        // NOTE(Andrei): Get waypoin at the offset, and invert the y axis
+        // NOTE(Andrei): Get waypoint at the offset
         carla::road::element::DirectedPoint waypoint = road->GetDirectedPointIn(waypointsOffset);
         waypoint.location.z = 1;
+
+        // NOTE(Andrei): Compute road elevation
+        const carla::road::element::RoadElevationInfo *elevationInfo =
+            road->GetInfo<carla::road::element::RoadElevationInfo>(waypointsOffset);
+
+        if(elevationInfo) {
+            double elevation =  elevationInfo->elevation +
+                                elevationInfo->slope * waypointsOffset +
+                                elevationInfo->vertical_curvature * std::pow(waypointsOffset, 2) +
+                                elevationInfo->curvature_change * std::pow(waypointsOffset, 3);
+            waypoint.location.z += (float)elevation;
+        }
 
         // NOTE(Andrei): Applyed the laneOffset of the lane section
         waypoint.ApplyLateralOffset(lanesOffset[lanesOffsetIndex].second);

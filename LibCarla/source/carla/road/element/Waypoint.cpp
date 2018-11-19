@@ -71,9 +71,10 @@ namespace element {
   Waypoint::~Waypoint() = default;
 
   geom::Transform Waypoint::GetTransform() const {
-    road::element::DirectedPoint dp =
-        _map->GetData().GetRoad(_road_id)->GetDirectedPointIn(_dist);
+    const road::element::RoadSegment *roadSegment = _map->GetData().GetRoad(_road_id);
+    road::element::DirectedPoint dp = roadSegment->GetDirectedPointIn(_dist);
     geom::Rotation rot(0.0, geom::Math::to_degrees(dp.tangent), 0.0);
+
     if (_lane_id > 0) {
       rot.yaw += 180.0;
     }
@@ -82,6 +83,18 @@ namespace element {
     DEBUG_ASSERT(info != nullptr);
 
     dp.ApplyLateralOffset(info->getLane(_lane_id)->_lane_center_offset);
+    const RoadElevationInfo *elevation_info = _lane_id > 0 ?
+      roadSegment->GetInfoReverse<RoadElevationInfo>(_dist) :
+      roadSegment->GetInfo<RoadElevationInfo>(_dist);
+
+    if(elevation_info != nullptr) {
+      double elevation = elevation_info->elevation +
+                         elevation_info->slope * _dist +
+                         elevation_info->vertical_curvature * _dist * _dist +
+                         elevation_info->curvature_change * _dist * _dist * _dist;
+      dp.location.z = (float) elevation;
+    }
+
     return geom::Transform(dp.location, rot);
   }
 
