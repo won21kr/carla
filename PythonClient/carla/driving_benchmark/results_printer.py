@@ -25,6 +25,8 @@ def print_summary(metrics_summary, weathers, path):
     metrics_to_average = [
         'episodes_fully_completed',
         'episodes_completion'
+        'percentage_off_road',
+        'percentage_green_lights'
 
     ]
     # We compute the number  of episodes based on size of average completion
@@ -34,6 +36,10 @@ def print_summary(metrics_summary, weathers, path):
 
         if metric == 'episodes_completion':
             print ("Average Percentage of Distance to Goal Travelled ")
+        elif metric == 'percentage_off_road':
+            print("Average Percentage of Distance to Percentage OffRoad")
+        elif metric == 'percentage_green_lights':
+            print("Average Percentage of Distance to Percentage Green Lights")
         else:
             print ("Percentage of Successful Episodes")
 

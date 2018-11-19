@@ -76,7 +76,7 @@ class BasicExperimentSuite(ExperimentSuite):
                     Conditions=conditions,
                     Poses=poses,
                     Task=iteration,
-                    Repetitions=1
+                    Repetitions=2
                 )
                 experiments_vector.append(experiment)
 
