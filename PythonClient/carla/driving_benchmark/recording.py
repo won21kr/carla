@@ -244,18 +244,21 @@ class Recording(object):
                 image.save_to_disk(self._image_filename_format.format(
                     episode_name, name, frame))
 
-    def get_pose_and_experiment(self, number_poses_task):
+    def get_pose_experiment_rep(self, number_poses_task, repetitions):
         """
-        Based on the line in log file, return the current pose and experiment.
+        Based on the line in log file, return the current pose, experiment and repetition.
         If the line is zero, create new log files.
 
         """
         # Warning: assumes that all tasks have the same size
         line_on_file = self._get_last_position() - 1
         if line_on_file == 0:
-            return 0, 0
+            return 0, 0, 0
         else:
-            return line_on_file % number_poses_task, line_on_file // number_poses_task
+            return int(line_on_file/repetitions) % number_poses_task, \
+                   line_on_file // (number_poses_task * repetitions), \
+                   line_on_file % repetitions
+
 
     def _experiment_exist(self):
 

@@ -107,24 +107,25 @@ class DrivingBenchmark(object):
                                  experiment_suite.dynamic_tasks)
 
         # Function return the current pose and task for this benchmark.
-        start_pose, start_experiment = self._recording.get_pose_and_experiment(
-            experiment_suite.get_number_of_poses_task())
+        start_pose, start_experiment, start_rep = self._recording.get_pose_experiment_rep(
+            experiment_suite.get_number_of_poses_task(), experiment_suite.get_number_of_reps_poses())
 
+        print (start_pose, start_experiment, start_rep)
         logging.info('START')
 
         for experiment in experiment_suite.get_experiments()[int(start_experiment):]:
-
+            print (experiment)
             positions = client.load_settings(
                 experiment.conditions).player_start_spots
 
             self._recording.log_start(experiment.task)
 
             for pose in experiment.poses[start_pose:]:
-                for rep in range(experiment.repetitions):
+                for rep in range(start_rep, experiment.repetitions):
 
                     start_index = pose[0]
                     end_index = pose[1]
-
+                    print ("start index ", start_index, "end index", end_index)
                     client.start_episode(start_index)
                     # Print information on
                     logging.info('======== !!!! ==========')

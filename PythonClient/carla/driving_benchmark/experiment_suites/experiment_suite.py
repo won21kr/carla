@@ -26,6 +26,16 @@ class ExperimentSuite(object):
 
         return len(self._experiments[0].poses)
 
+    def get_number_of_reps_poses(self):
+        """
+            Get the number of poses a task have for this benchmark
+        """
+
+        # Warning: assumes that all poses have the same number of repetitions
+
+        return self._experiments[0].repetitions
+
+
     def get_experiments(self):
         """
         Getter for the experiment set.
