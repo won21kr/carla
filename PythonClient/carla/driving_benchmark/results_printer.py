@@ -24,7 +24,7 @@ def print_summary(metrics_summary, weathers, path):
 
     metrics_to_average = [
         'episodes_fully_completed',
-        'episodes_completion'
+        'episodes_completion',
         'percentage_off_road',
         'percentage_green_lights'
 
