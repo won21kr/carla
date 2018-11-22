@@ -45,6 +45,7 @@ def print_summary(metrics_summary, weathers, path):
 
         print ("")
         values = metrics_summary[metric]
+        print( " VALUES ")
 
         metric_sum_values = np.zeros(number_of_episodes)
         for weather, tasks in values.items():
