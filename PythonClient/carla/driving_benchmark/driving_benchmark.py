@@ -171,7 +171,9 @@ class DrivingBenchmark(object):
                     else:
                         logging.info('----- Timeout! -----')
 
+                start_rep = 0
             start_pose = 0
+
 
         self._recording.log_end()
 
