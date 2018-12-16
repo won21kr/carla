@@ -36,6 +36,7 @@
 
   * [Map customization](map_customization.md)
   * [Build system](build_system.md)
+  * [How to add a new sensor](how_to_add_a_new_sensor.md)
 
 <h3>Art guidelines</h3>
 
