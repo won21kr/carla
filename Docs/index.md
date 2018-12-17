@@ -24,7 +24,16 @@
   * [Python API reference](python_api.md)
   * [Running without display and selecting GPUs](carla_headless.md)
   * [Running in a Docker](carla_docker.md)
-  * [How to link Epic's Automotive Materials](epic_automotive_materials.md)
+  * [How to link Epic's Automotive Materials](epic_automotive_materials.md)  
+
+<h3>Map generation tools</h3>
+
+  * [Building block generator](building_block_generator)
+  * [Building actor class](building_actor_class)
+  * [Spline tools](spline_tools)
+  * [Traffic control assets](trafic_control_assets) 
+  * [Decorative blueprints](decorative_blueprints)
+  * [Weather](weather)
 
 <h3>Contributing</h3>
 
